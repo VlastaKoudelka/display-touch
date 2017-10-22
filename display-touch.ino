@@ -26,7 +26,7 @@ struct CALIBRATION {
 
 CALIBRATION cal;
 
- void DisplayCal(float XRes, float YRes) {
+void DisplayCal(float XRes, float YRes) {
   uint16_t coordX[5] = {0, 320, 320, 0, 160};
   uint16_t coordY[5] = {0, 0, 240, 240, 120};
   unsigned int Xmax, Xmin, Ymax, Ymin;
@@ -69,24 +69,22 @@ CALIBRATION cal;
 
   displej.fillScreen(ILI9340_BLACK);  
   displej.setCursor( 0, 12);
-  displej.print("minimum X: ");
-  displej.println(Xmin);
-  displej.print("minimum Y: ");
-  displej.println(Ymin);
-  displej.print("maximum X: ");
-  displej.println(Xmax);
-  displej.print("maximum Y: ");
-  displej.println(Ymax);
+  displej.print("posun X: ");
+  displej.println(cal.shiftX);
+  displej.print("posun Y: ");
+  displej.println(cal.shiftY);
   displej.print("skalovani X: ");
-  displej.println(cal.scaleX,5);
+  displej.println(cal.scaleX,10);
   displej.print("skalovani Y: ");
-  displej.print(cal.scaleY,5);
+  displej.print(cal.scaleY,10);
 }
 
-
-
 void setup() {
-
+  cal.shiftX = 141; //defaultni kalibrace
+  cal.shiftY = 240;
+  cal.scaleX = 0.08966;
+  cal.scaleY = 0.06552;
+  
   // zahájení komunikace s displejem a dotykovou vrstvou
   displej.begin();
   dotyk.begin();
@@ -96,32 +94,55 @@ void setup() {
   // vyplnění displeje černou barvou
   displej.setFont(&FreeMono9pt7b);
   displej.fillScreen(ILI9340_BLACK);
-  DisplayCal(320.0, 240.0);
+  
+  //DisplayCal(320.0, 240.0);
 }
 
 void loop() {
   TS_Point data;
   uint16_t realX,realY;
-  int randColor = ILI9340_BLUE;
-
+  int painColor = ILI9340_BLUE, radius = 2;
+  boolean dragFlag = false;
   unsigned int colors[8] = {0x001F, 0xF800, 0x07E0, 0x07FF, 0xF81F, 0xFFE0, 0xFFFF, 0x0000};
-
+  displej.drawRect(300,0,20,20,painColor);
+  displej.drawRect(300,220,20,20,int(random(0x0000,0xFFFF)));
+  displej.drawRect(0,220,20,20,int(random(0x0000,0xFFFF)));
   
   while (true) {
-
+    if (dotyk.touched()){
+      if (!dragFlag){ //if this is the first touch after some interuption
+        delay(30);    //wait for appropriate preasure
+        dragFlag = true;
+      }      
+      dragFlag = true; //continuous touch
       data = dotyk.getPoint();
       realX = int((data.x - cal.shiftX)*cal.scaleX);
       realY = int((data.y - cal.shiftY)*cal.scaleY);
-      if ((realX > 300) && (realY > 220)){
+      if ((realX > 300) && (realY > 220)){ //mazani displeje
         displej.fillScreen(ILI9340_BLACK);     
         delay(50);
+          displej.drawRect(300,220,20,20,int(random(0x0000,0xFFFF)));
+          displej.drawRect(300,0,20,20,int(random(0x0000,0xFFFF)));
+          displej.drawRect(0,220,20,20,int(random(0x0000,0xFFFF)));          
       }
-      else if ((realX > 300) && (realY < 20)){
-        randColor = int(random(0x0000,0xFFFF)); 
+      else if ((realX > 300) && (realY < 20)){ //nahodna zmena barvy
+        painColor = int(random(0x0000,0xFFFF));
+        displej.drawRect(300,0,20,20,painColor); 
+        radius = 2;
       }
-      displej.fillCircle(realX,realY,2,randColor);
-      delay(5);
+      else if ((realX < 20) && (realY > 220)){ //zapnuti gumy    
+        painColor = ILI9340_BLACK;
+        radius = 4;
+      }      
+      else{
+        displej.fillCircle(realX,realY,radius,painColor);
+      }
     }
+    else {
+      dragFlag = false;  //new touch will be the first touch
+    }    
+    delay(1);
+  }
 }
 
 
