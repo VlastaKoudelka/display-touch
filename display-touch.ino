@@ -48,8 +48,10 @@ CALIBRATION cal;
       delay(10);
     }
     data = dotyk.getPoint(); //collect data
+    displej.drawCircle(coordX[i], coordY[i], radius, ILI9340_YELLOW); 
     coordX[i] = data.x;
     coordY[i] = data.y;
+    
     while (dotyk.touched()) {     //have to wait till the touch is remaining
       delay(10);
     }
@@ -62,8 +64,8 @@ CALIBRATION cal;
 
   cal.shiftX = Xmin;
   cal.shiftY = Ymin;
-  cal.scaleX = XRes / Xmax;
-  cal.scaleY = YRes / Ymax;
+  cal.scaleX = XRes / (Xmax-Xmin); //input data are shifted first and than scaled
+  cal.scaleY = YRes / (Ymax-Ymin);
 
   displej.fillScreen(ILI9340_BLACK);  
   displej.setCursor( 0, 12);
@@ -100,28 +102,26 @@ void setup() {
 void loop() {
   TS_Point data;
   uint16_t realX,realY;
+  int randColor = ILI9340_BLUE;
 
   unsigned int colors[8] = {0x001F, 0xF800, 0x07E0, 0x07FF, 0xF81F, 0xFFE0, 0xFFFF, 0x0000};
+
+  
   while (true) {
-    for (int i = 0; i < 7; i++) {
-      while (!dotyk.touched()) {
-        delay(10);
-      }
+
       data = dotyk.getPoint();
       realX = int((data.x - cal.shiftX)*cal.scaleX);
       realY = int((data.y - cal.shiftY)*cal.scaleY);
-      displej.fillScreen(colors[i]);
-      displej.setCursor( 0, 12);
-      displej.setTextColor(colors[i + 1]);
-      displej.print("data x = ");
-      displej.println(realX);
-      displej.print("data y = ");
-      displej.println(realY);
-      displej.print("data z = ");
-      displej.print(data.z);
-      delay(500);
+      if ((realX > 300) && (realY > 220)){
+        displej.fillScreen(ILI9340_BLACK);     
+        delay(50);
+      }
+      else if ((realX > 300) && (realY < 20)){
+        randColor = int(random(0x0000,0xFFFF)); 
+      }
+      displej.fillCircle(realX,realY,2,randColor);
+      delay(5);
     }
-  }
-  delay(1);
-
 }
+
+
