@@ -100,24 +100,31 @@ void setup() {
 
 void loop() {
   TS_Point data;
-  uint16_t realX,realY;
-  int painColor = ILI9340_BLUE, radius = 2;
+  uint16_t realX,realY, lastX, lastY;
+  int painColor = ILI9340_BLUE, radius = 2, diffX, diffY;
   boolean dragFlag = false;
   unsigned int colors[8] = {0x001F, 0xF800, 0x07E0, 0x07FF, 0xF81F, 0xFFE0, 0xFFFF, 0x0000};
   displej.drawRect(300,0,20,20,painColor);
   displej.drawRect(300,220,20,20,int(random(0x0000,0xFFFF)));
   displej.drawRect(0,220,20,20,int(random(0x0000,0xFFFF)));
+  delay(1);
   
   while (true) {
     if (dotyk.touched()){
-      if (!dragFlag){ //if this is the first touch after some interuption
-        delay(30);    //wait for appropriate preasure
+      if (!dragFlag){ //if this is the first touch after some interuption        
+        delay(20);
+        data = dotyk.getPoint();
+        lastX = int((data.x - cal.shiftX)*cal.scaleX);
+        lastY = int((data.y - cal.shiftY)*cal.scaleY);        
+        delay(1);    //wait for appropriate preasure
         dragFlag = true;
       }      
-      dragFlag = true; //continuous touch
       data = dotyk.getPoint();
       realX = int((data.x - cal.shiftX)*cal.scaleX);
       realY = int((data.y - cal.shiftY)*cal.scaleY);
+      diffX = lastX - realX;
+      diffY = lastY - realY;  
+      
       if ((realX > 300) && (realY > 220)){ //mazani displeje
         displej.fillScreen(ILI9340_BLACK);     
         delay(50);
@@ -133,9 +140,14 @@ void loop() {
       else if ((realX < 20) && (realY > 220)){ //zapnuti gumy    
         painColor = ILI9340_BLACK;
         radius = 4;
-      }      
-      else{
+      }   
+      else if ((abs(diffX) < 10)&&(abs(diffY) < 10)){
         displej.fillCircle(realX,realY,radius,painColor);
+        lastX = realX;
+        lastY = realY;
+      }
+      else{
+        delay(1);
       }
     }
     else {
