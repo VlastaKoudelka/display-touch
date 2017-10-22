@@ -101,7 +101,7 @@ void setup() {
 void loop() {
   TS_Point data;
   uint16_t realX,realY, lastX, lastY;
-  int painColor = ILI9340_BLUE, radius = 2, diffX, diffY;
+  int painColor = ILI9340_BLUE, radius = 1, diffX, diffY;
   boolean dragFlag = false;
   unsigned int colors[8] = {0x001F, 0xF800, 0x07E0, 0x07FF, 0xF81F, 0xFFE0, 0xFFFF, 0x0000};
   displej.drawRect(300,0,20,20,painColor);
