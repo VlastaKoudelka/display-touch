@@ -26,29 +26,31 @@ struct CALIBRATION {
 
 CALIBRATION cal;
 
-CALIBRATION DisplayCal(Adafruit_ILI9340 display, XPT2046_Touchscreen *touch, int XRes, int YRes) {
+ void DisplayCal(float XRes, float YRes) {
   uint16_t coordX[5] = {0, 320, 320, 0, 160};
   uint16_t coordY[5] = {0, 0, 240, 240, 120};
   unsigned int Xmax, Xmin, Ymax, Ymin;
   uint16_t radius = 10;
   TS_Point data;
-  CALIBRATION calOut;
 
 
-  display.setCursor(0, 20);
-  display.println("Kalibrace dotykove vrstvy");
-  display.println("Dotkni se LCD..");
+  displej.setCursor(0, 20);
+  displej.println("Kalibrace dotykove vrstvy");
+  displej.println("Dotkni se LCD..");
+  while (!dotyk.touched()) {
+    delay(10);
+  }
 
   for (int i = 0; i < 5; i++) {
-    while (!touch->touched()) {
+    displej.fillScreen(ILI9340_BLACK);
+    displej.drawCircle(coordX[i], coordY[i], radius, ILI9340_BLUE);        
+    while (!dotyk.touched()) {
       delay(10);
     }
-    display.fillScreen(ILI9340_BLACK);
-    display.drawCircle(coordX[i], coordY[i], radius, ILI9340_BLUE);
-    while (touch->touched()) {     //have to wait till the touch is remaining
-      data = touch->getPoint(); //collect data
-      coordX[i] = data.x;
-      coordY[i] = data.y;
+    data = dotyk.getPoint(); //collect data
+    coordX[i] = data.x;
+    coordY[i] = data.y;
+    while (dotyk.touched()) {     //have to wait till the touch is remaining
       delay(10);
     }
     
@@ -58,19 +60,25 @@ CALIBRATION DisplayCal(Adafruit_ILI9340 display, XPT2046_Touchscreen *touch, int
   Xmin = min(coordX[0], coordX[3]); //select the best minima
   Ymin = min(coordY[0], coordY[1]);
 
-  calOut.shiftX = Xmin;
-  calOut.shiftY = Ymin;
-  calOut.scaleX = XRes / Xmax;
-  calOut.scaleY = YRes / Ymax;
+  cal.shiftX = Xmin;
+  cal.shiftY = Ymin;
+  cal.scaleX = XRes / Xmax;
+  cal.scaleY = YRes / Ymax;
 
-  display.fillScreen(ILI9340_BLACK);  
+  displej.fillScreen(ILI9340_BLACK);  
   displej.setCursor( 0, 12);
-  displej.println(data.x);
-  displej.println(data.y);
+  displej.print("minimum X: ");
+  displej.println(Xmin);
+  displej.print("minimum Y: ");
+  displej.println(Ymin);
+  displej.print("maximum X: ");
   displej.println(Xmax);
+  displej.print("maximum Y: ");
   displej.println(Ymax);
-  displej.println(calOut.scaleX);
-  displej.print(calOut.scaleY);
+  displej.print("skalovani X: ");
+  displej.println(cal.scaleX,5);
+  displej.print("skalovani Y: ");
+  displej.print(cal.scaleY,5);
 }
 
 
@@ -86,7 +94,7 @@ void setup() {
   // vyplnění displeje černou barvou
   displej.setFont(&FreeMono9pt7b);
   displej.fillScreen(ILI9340_BLACK);
-  cal =  DisplayCal(displej, &dotyk, 320, 240);
+  DisplayCal(320.0, 240.0);
 }
 
 void loop() {
@@ -103,9 +111,9 @@ void loop() {
       displej.setCursor( 0, 12);
       displej.setTextColor(colors[i + 1]);
       displej.print("data x = ");
-      displej.println(int((data.x - cal.shiftX)*cal.scaleX));
+      displej.println(data.x);
       displej.print("data y = ");
-      displej.println(int((data.y - cal.shiftY)*cal.scaleY));
+      displej.println(data.y);
       displej.print("data z = ");
       displej.print(data.z);
       delay(500);
