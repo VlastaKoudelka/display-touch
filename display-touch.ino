@@ -99,6 +99,7 @@ void setup() {
 
 void loop() {
   TS_Point data;
+  uint16_t realX,realY;
 
   unsigned int colors[8] = {0x001F, 0xF800, 0x07E0, 0x07FF, 0xF81F, 0xFFE0, 0xFFFF, 0x0000};
   while (true) {
@@ -107,13 +108,15 @@ void loop() {
         delay(10);
       }
       data = dotyk.getPoint();
+      realX = int((data.x - cal.shiftX)*cal.scaleX);
+      realY = int((data.y - cal.shiftY)*cal.scaleY);
       displej.fillScreen(colors[i]);
       displej.setCursor( 0, 12);
       displej.setTextColor(colors[i + 1]);
       displej.print("data x = ");
-      displej.println(data.x);
+      displej.println(realX);
       displej.print("data y = ");
-      displej.println(data.y);
+      displej.println(realY);
       displej.print("data z = ");
       displej.print(data.z);
       delay(500);
