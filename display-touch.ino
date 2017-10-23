@@ -135,7 +135,7 @@ void loop() {
       else if ((realX > 300) && (realY < 20)){ //nahodna zmena barvy
         painColor = int(random(0x0000,0xFFFF));
         displej.drawRect(300,0,20,20,painColor); 
-        radius = 2;
+        radius = 1;
       }
       else if ((realX < 20) && (realY > 220)){ //zapnuti gumy    
         painColor = ILI9340_BLACK;
